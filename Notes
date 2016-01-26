@@ -1,0 +1,14 @@
+
+//Calibration: use zhang's method...opencv camera calibrate with pictures of 4 calibration points.
+//This generates intrinsic matrix
+//
+
+
+Use teensy 3.2 with 'send now' mode.
+Also measure total round-trip time.
+Calibrate time-warp mode by calibrating time to send+recieve messages to/from teensy (/2) plus calibrated time to enable LED to recieving information.
+Possibly do intrinsic (and extrinsic?) untransform in 'hardware' (by writing intrinsic to uuprom.  Does teensy have floating-point hardware? No but might be fast enough)
+
+Add to wiimote camera with clock circuit.  Also a wii lib in the firmware 
+
+http://www.stephenhobley.com/blog/2009/03/01/pixartwiimote-sensor-library-for-arduino/
