@@ -12,3 +12,52 @@ Possibly do intrinsic (and extrinsic?) untransform in 'hardware' (by writing int
 Add to wiimote camera with clock circuit.  Also a wii lib in the firmware 
 
 http://www.stephenhobley.com/blog/2009/03/01/pixartwiimote-sensor-library-for-arduino/
+
+
+
+P*[R t]
+
+
+Transform K corner1 = p1
+Transform K corner2 = p2
+Transform K corner3 = p3
+Transform K corner4 = p4  
+
+This is a homography and can be solved using null space.
+
+K = P * [R t]
+
+* P r11 r12 r13 t1 [ex eye2 eye3 eye4] =  
+    r21 r22 r23 t2 [ey
+    r31 r32 r33 t3 [0
+     0   0   0   1 [1
+
+    
+Add orthonormality constraints on r (technically these are quadratic?)
+
+P11(r11 ex + r12 ey + t1)+P12(r21 ex + r12 ey + t2)+P13(r31 ex+r32 ey + t3) = pu ph
+P21(r11 ex + r12 ey + t1)+P22(r21 ex + r22 ey + t2)+P23(r31 ex+r32 ey + t3) = pv ph
+P31(r11 ex + r12 ey + t1)+P32(r21 ex + r22 ey + t2)+P33(r31 ex+r32 ey + t3) = ph
+
+P11(r11 ex + r12 ey + t1)+P12(r21 ex + r12 ey + t2)+P13(r31 ex+r32 ey + t3) = pu (P31(r11 ex + r12 ey + t1)+P32(r21 ex + r22 ey + t2)+P33(r31 ex+r32 ey + t3))
+P21(r11 ex + r12 ey + t1)+P22(r21 ex + r22 ey + t2)+P23(r31 ex+r32 ey + t3) = pv (P31(r11 ex + r12 ey + t1)+P32(r21 ex + r22 ey + t2)+P33(r31 ex+r32 ey + t3))
+
+P=[a s u0
+  [0 b v0
+  [0 0 1]
+  
+a(r11 ex + r12 ey + t1)+s(r21 ex + r12 ey + t2)+u0(r31 ex+r32 ey + t3) = pu (r31 ex+r32 ey + t3)
+b(r21 ex + r22 ey + t2)+v0(r31 ex+r32 ey + t3) = pv (r31 ex+r32 ey + t3)
+
+r11     r12	t1	r21	r22	t2	r31		r32		t3] 
+[(a ex) (a ey) 	a 	(s ex)	(s ey)	s	(u0-pu)ex	(u0-pu)ey	(u0-pu)] = 0
+[0	0	0	(b ex)	(b ey)	b 	(v0-pv)ex	(v0-pv)ey	(u0-pv)] = 0
+
+Null space constraint per eye....solve subject to the constraint that 
+
+This is a series of 8 linear constraints...plus we have the additional quadratic constraints that ||R*1||^2 = 1, ||R*2||^2 = 1, R*1 x R*2 = 0
+  
+Anyway, solve using exact null space solution. (can be done using fast QR decomposition on A' or by using direct substitution with appended 0 0 0 0 0 0 0 0 0 1] at the bottom
+[A;0 0 0 0 0 0 0 0 1]\[0 0 0 0 0 0 0 0 1]'
+
+Alternative: Find the camera matrix by doing 
