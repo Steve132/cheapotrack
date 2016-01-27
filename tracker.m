@@ -37,4 +37,10 @@ z=(norm(nR(:,1))+norm(nR(:,2)))/2; #average magnitude of the r vectors is what w
 nt=nt/z;
 nR=nR/z;
 nR(:,3)=cross(nR(:,2),nR(:,1)); #enforce right hand coordinate system.
-nM=[nR,nt] * det(nR); #enforce right hand coordinate system
+nt=nt*det(nR);
+nR=nR*det(nR); #enforce right hand coordinate system
+
+nM=[nR,nt]; 
+
+nM
+M
