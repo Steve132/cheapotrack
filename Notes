@@ -61,3 +61,19 @@ Anyway, solve using exact null space solution. (can be done using fast QR decomp
 [A;0 0 0 0 0 0 0 0 1]\[0 0 0 0 0 0 0 0 1]'
 
 Alternative: Find the camera matrix by doing 
+
+
+Calibration Path: to screen space...
+
+Set up another (visible light) camera (V) with a FOV capable of seeing the whole screen and the camera center.
+
+Measure the Essential matrix to the Wii camera by measuring a bunch of stereo correspondences of a moving object.  (moving retroreflective object with a bright light sourc)
+Use background subtraction to do this.   Make sure to do barrel distortion correction on the V camera.
+
+Find the essential matrix R+T using the algorithm described on the wiki page. 
+
+THEN find the mapping from V to normalized screen coordinates by drawing concentric circles at the corners and fitting conics (from the fit conic you can find the image of the conic center)
+
+The mapping from V to normalized screen coordinates AND the mapping from V to unnormalized 'booth' space can be easily recovered. USING THE SAME ALGORITHM ABOVE (for the glasses).
+
+This results in a transform.
