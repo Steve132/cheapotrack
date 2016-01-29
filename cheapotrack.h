@@ -8,7 +8,11 @@ typedef struct cheapocam_options_t_s
 
 cheapocam_t* cheapotrack_open(const char* devicefile);
 void cheapotrack_close(cheapocam_t* device);
-void cheapotrack_set_options(cheapocam_t* device,const cheapocam_options_t* options); 
+
+void cheapotrack_set_options(cheapocam_t* device,const cheapocam_options_t* options);
+
+size_t cheapotrack_get_param(cheapocam_t* device,unsigned int param_name,void* buffer,size_t* num_bytes); //returns number of bytes needed to get that parameter
+void cheapotrack_set_param(cheapocam_t* device,unsigned int param_name,const void* data,size_t num_bytes);
 
 typedef struct cheapocam_point_t_s
 {
