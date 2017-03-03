@@ -1,0 +1,6 @@
+http://procrastineering.blogspot.com/2008/09/working-with-pixart-camera-directly.html
+
+
+http://www.stephenhobley.com/blog/2009/03/01/pixartwiimote-sensor-library-for-arduino/
+
+http://wiibrew.org/wiki/Wiimote#IR_Camera
