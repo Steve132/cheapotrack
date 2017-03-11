@@ -58,7 +58,7 @@ void PixArt::request()
 	status=WAITING;
 	
 	#if defined(PA_TEENSY3_WIRE) && defined(PA_TEENSY3_ASYNC)
-		w.sendRequest(IRslaveAddress,sz,I2C_STOP);
+		w.sendRequest(IRslaveAddress,sz,I2C_NOSTOP);
 	#elif defined(PA_TEENSY3_WIRE)
 		w.requestFrom(IRslaveAddress,sz);
 		status=COMPLETE;

@@ -68,23 +68,25 @@ void loop()
 	{
 		parray[i]->request();
 	}
-		
 
-	for(uint8_t i=0;i<NUM_PA;i++)
+	for(uint8_t num_complete=0;num_complete<NUM_PA;)
 	{
-		while(parray[i]->check_status() != PixArt::COMPLETE);
+		for(uint8_t i=0;i<NUM_PA;i++)
+		{
+			num_complete+=(uint8_t)(parray[i]->check_status() != PixArt::COMPLETE);
+		}
 	}
-
 	for(uint8_t i=0;i<NUM_PA;i++)
 	{
 		TrackingPacket tp=parray[i]->read();
-
-		for(int i=0;i<4;i++)
+		Serial.print("CAM ");
+		Serial.print(i,DEC);
+		for(int pi=0;pi<4;pi++)
 		{
 			Serial.print("(");
-			Serial.print(tp.points[i].x);
+			Serial.print((int)tp.points[pi].x,DEC);
 			Serial.print(",");
-			Serial.print(tp.points[i].y);
+			Serial.print((int)tp.points[pi].y,DEC);
 			Serial.print(")");
 			//Serial.print(tp.points[i].intensity);
 		
