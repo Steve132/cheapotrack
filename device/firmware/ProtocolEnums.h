@@ -40,24 +40,67 @@ enum ServerResponses
 //0 is byte (implies 4 bit intensity mode), 1 (1 << 1==2) is short, 3 is float, (1 << 2==4) (8 is invalid).
 //0 is no intensity, 1 is byte intensity, 2 is short intensity, 3 is float intensity.
 
-#define CT_TM_CAMERA_MASK 0xC0
-#define CT_TM_POINT_MASK 0x30
-#define CT_TM_DTYPE_MASK 0x0C
-#define CT_TM_INTENSITY_MASK 0x03
+
+enum TrackingFlagsDataTypes
+{
+	CT_BYTE=0,
+	CT_USHORT=1,
+	CT_FLOAT=2,
+	CT_NONE=3
+};
+
+struct TrackingFlags2D
+{
+	uint8_t num_cameras;
+	uint8_t num_points;
+	TrackingFlagsDataTypes dtype;
+	TrackingFlagsDataTypes intensity_type;
+	
+	TrackingFlags2D(uint8_t reg=0xF1)://default=0'11110001
+		num_cameras((reg >> 6) & 0x3),
+		num_points((reg >> 4) & 0x3),
+		dtype((reg >> 2) & 0x3),
+		intensity_type((reg >> 2) & 0x3)
+	{}	
+	
+	uint8_t bytes_per_point() const
+	{
+		uint8_t bpp=(2*(1UB << (uint8_t)dtype);
+		if(dtype == CT_BYTE)
+		{
+			bpp+=1;
+		}
+		else if(intensity_type != CT_NONE)
+		{
+			bpp+=(1UB << (uint8_t)intensity_type);
+		}
+		return bpp;
+	}
+	uint8_t bufsize() const
+	{
+		//can't be more than 50...
+		return num_cameras*num_points*bytes_per_point();
+	}
+	uint8_t header() const
+	{
+		return (num_cameras << 6) | (num_points << 4) | (dtype << 2) | (intensity_type);
+	}
+};
 //invalid if number of cameras*number of points*(3 if byte type==0 otherwise (2*2^dtype)+ intensity*idtype)) > 48
-enum TrackingPacketTypes
+/*enum TrackingPacketTypes
 {
 	CT_TP_1CAMERA4POINTS_2D_8F=0x80+0,	//(2 byte header)(4)frame,4x(2 us) delays,(1)idmask,	1x(4x(3x(4 byte float)))
 	CT_TP_4CAMERA1POINTS_2D_8F=0x90+0,	//(2 byte header)(4)frame,4x(2 us) delays,(1)idmask 	4x(1x(3x(4 byte float))
 	CT_TP_2CAMERA4POINTS_2D_24US=0xA0+0, 	//(2 byte header)(4)frame,4x(2 us) delays,(1)idmask, 	2x(4x(3x(2 byte short)
 	CT_TP_4CAMERA4POINTS_2D_48UB=0xB0+0	//(2 byte header)(4)frame,4x(2 us) delays,(1)idmask,    4x(4x(3x(1 byte))//always 62 bytes to fit into a single USB packet.  Consider flushing the packet first.
 	CT_TP_4CAMERA4POINTS_2D_48UB=0xB0+0	//(2 byte header)(4)frame,4x(2 us) delays,(1)idmask,    4x(4x(3x(1 byte))//always 62 bytes to fit into a single USB packet.  Consider flushing the packet first.
-}
+}*/
 
 enum ServerRegisters
 {
 	R_CAMERA_MASK=1,
 	R_FRAMERATE_DELAY_US=2,
+	R_3DTRACKING_OBJECT_PLANAR_LOCATIONS=3,
 	P_READONLY_BIT=0x8000,
 	R_ACTIVE=P_READONLY_BIT+1,
 	P_PERSISTENT_BIT=0xC000,
