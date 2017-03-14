@@ -14,6 +14,8 @@ PixArt pa1(Wire1);
 
 PixArt *parray[2]={&pa0,&pa1};
 
+ct::ProtocolServer server_host;
+
 static const uint8_t NUM_PA=sizeof(parray)/sizeof(PixArt*);
 
 void psetup(PixArt& pa,const PixArt::Settings& s)
@@ -43,61 +45,81 @@ void setup()
 
 
 }
-
+elapsedMicros capture_frametimer;
 void doTracking()
 {
 	uint8_t complete_values[NUM_PA];
+	uint8_t cmask=server_host.cam_mask;
+	uint8_t enabled_count=0;
 	for(uint8_t i=0;i<NUM_PA;i++)
 	{
+		if(!((cmask >> i) & 0x1)) continue;
 		parray[i]->request();
 		complete_values[i]=0;
+		enabled_count++;
 	}
 
 	uint8_t num_complete;
-	while(num_complete<NUM_PA)
+	uint16_t group_delays[NUM_PA];
+	while(num_complete<enabled_count)
 	{
 		num_complete=0;
 		for(uint8_t i=0;i<NUM_PA;i++)
 		{
+			if(!((cmask >> i) & 0x1)) continue;
 			//TODO: volatile this variable and protect it..more specificaly 
-			complete_values[i]=(uint8_t)(parray[i]->check_status() != PixArt::COMPLETE);
+			if(parray[i]->check_status() != PixArt::COMPLETE)
+			{
+				complete_values[i]=1;
+			}
+			else
+			{
+				group_delays[i]=static_cast<uint32_t>(capture_frametimer) & 0xFFFF; //#TODO, not less than 15FPS
+			}
 		}
 		noInterrupts();
 		for(uint8_t i=0;i<NUM_PA;i++)
 		{
+			if(!((cmask >> i) & 0x1)) continue;
 			num_complete+=complete_values[i];
 		}
 		interrupts();
 	}
 
+	PointGroup pgarray[4];
+
 	for(uint8_t i=0;i<NUM_PA;i++)
 	{
-		PixArt::PointGroup tp=parray[i]->read();
-		Serial.print("CAM ");
-		Serial.print(i,DEC);
-		for(int pi=0;pi<4;pi++)
-		{
-			Serial.print("(");
-			Serial.print((int)tp.points[pi].x,DEC);
-			Serial.print(",");
-			Serial.print((int)tp.points[pi].y,DEC);
-			Serial.print(")");
-			//Serial.print(tp.points[i].intensity);
-		
-		}
-		Serial.print("\n");
+		if(!((cmask >> i) & 0x1)) continue;
+		pgarray[i]=parray[i]->read();
 	}
+	server_host.onFrameCapture(pgarray,group_delays,NUM_PA);
 }
-
-elapsedMicros capture_frametimer;
-uint32_t current_framerate_delay_us=8333; //120hz
-
+bool last_tracking=false;
 void loop()
 {
-	if(capture_frametimer >= current_framerate_delay_us)
+	if(!Serial.dtr())
+	{
+		return;
+	}
+	if(Serial.available() > 0)
+	{
+		server_host.onCommandReady();
+	}
+
+	if(server_host.tracking_active ^ last_tracking)
+	{
+		digitalWrite(ledPin, last_tracking ? HIGH : LOW);
+	}
+	last_tracking=server_host.tracking_active;
+	if(!server_host.tracking_active)
+	{
+		return;
+	}
+	if(capture_frametimer >= server_host.framerate_delay_us)
 	{	
-		doTracking();
-		capture_frametimer -= current_framerate_delay_us;
+		doTracking();//this sends the result via server host...
+		capture_frametimer -= server_host.framerate_delay_us; //TODO, cannot go lower than 15 fps
 	}
 	//no more work to do till next boundary...this doesn't exactly save power because it doesn't sleep properly...but it is correct and who cares about saving power for this thing.
 }

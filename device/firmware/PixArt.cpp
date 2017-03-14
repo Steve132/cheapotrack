@@ -76,7 +76,7 @@ PixArt::Status PixArt::check_status()
 	#endif
 	return status;
 }
-PixArt::PointGroup PixArt::read()
+PointGroup PixArt::read()
 {
 
 	#if defined(PA_TEENSY3_WIRE) && defined(PA_TEENSY3_ASYNC)
@@ -86,7 +86,7 @@ PixArt::PointGroup PixArt::read()
 	#endif
 	if(status==IDLE) 
 	{
-		return PixArt::PointGroup();
+		return PointGroup();
 	}
 
 	switch(mode)
@@ -146,9 +146,9 @@ static inline uint8_t maskdown(const uint8_t* buf,uint8_t count)
 	}
 	return cm;
 }
-PixArt::PointGroup PixArt::getBasic()
+PointGroup PixArt::getBasic()
 {
-	PixArt::PointGroup r;
+	PointGroup r;
 	uint8_t b[10];
 	readbuffer(b,10);
 	uint8_t* bp=b;
@@ -202,9 +202,9 @@ bool PixArt::getSubExtendedMode(Point& point,const uint8_t* b)
 	point.intensity=ip;
 	return true;
 }
-PixArt::PointGroup PixArt::getExtended()
+PointGroup PixArt::getExtended()
 {
-	PixArt::PointGroup r;
+	PointGroup r;
 	uint8_t b[13];
 	readbuffer(b,13);
 	uint8_t* bp=b+1; //there's clearly an offset-by-one error on extended mode...but something else might be wrong.
@@ -216,9 +216,9 @@ PixArt::PointGroup PixArt::getExtended()
 	}
 	return r;		
 }
-PixArt::PointGroup PixArt::getFull()
+PointGroup PixArt::getFull()
 {
-	PixArt::PointGroup r;
+	PointGroup r;
 	uint8_t b[36];
 	readbuffer(b,36);
 	uint8_t* bp=b;
@@ -231,9 +231,9 @@ PixArt::PointGroup PixArt::getFull()
 	}
 	return r;		
 }	
-PixArt::PointGroup PixArt::getOther()
+PointGroup PixArt::getOther()
 {
-	PixArt::PointGroup r;
+	PointGroup r;
 	uint8_t b[16];
 	readbuffer(b,16);
 	if(mode==SIMPLE)

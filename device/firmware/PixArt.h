@@ -47,10 +47,6 @@ private:
 	}
 	void write_2byte(uint8_t d1,uint8_t d2);
 public:
-	struct PointGroup
-	{
-		Point points[4];
-	};
 
 	struct Settings
 	{
@@ -74,18 +70,18 @@ public:
 
 	void request();
 	Status check_status();
-	PixArt::PointGroup read();
+	PointGroup read();
 	
 	WireType& wire() { return w; }
 
 private:
 	void readbuffer(uint8_t* buf,uint8_t count);
-	PixArt::PointGroup getBasic();
+	PointGroup getBasic();
 
 	bool getSubExtendedMode(Point& point,const uint8_t* b);
-	PixArt::PointGroup getExtended();
-	PixArt::PointGroup getFull();
-	PixArt::PointGroup getOther();
+	PointGroup getExtended();
+	PointGroup getFull();
+	PointGroup getOther();
 };
 
 #endif
