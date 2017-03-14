@@ -2,6 +2,7 @@
 #include "Arduino.h"
 
 #define PA_TEENSY3_ASYNC
+#define PA_PRINT_BUFFER
 
 void PixArt::write_2byte(uint8_t d1,uint8_t d2)
 {
@@ -15,9 +16,9 @@ void PixArt::write_2byte(uint8_t d1,uint8_t d2)
 void PixArt::reset(const PixArt::Settings s)
 {
 	mode=s.mode;
-	static const uint8_t DELAYAMOUNT=100;
+	static const uint8_t DELAYAMOUNT=25;
 	
-
+	//TODO fix simple mode to include settings buffers
 	if(mode != SIMPLE)
 	{
 		write_2byte(0x30,0x01);                           delay(DELAYAMOUNT);
@@ -39,12 +40,12 @@ void PixArt::reset(const PixArt::Settings s)
 	}
 	else
 	{
-		write_2byte(0x30,0x01); delay(10);
-		write_2byte(0x30,0x08); delay(10);
-		write_2byte(0x06,0x90); delay(10);
-		write_2byte(0x08,0xC0); delay(10);
-		write_2byte(0x1A,0x40); delay(10);
-		write_2byte(0x33,0x33); delay(10);
+		write_2byte(0x30,0x01); delay(DELAYAMOUNT);
+		write_2byte(0x30,0x08); delay(DELAYAMOUNT);
+		write_2byte(0x06,0x90); delay(DELAYAMOUNT);
+		write_2byte(0x08,0xC0); delay(DELAYAMOUNT);
+		write_2byte(0x1A,0x40); delay(DELAYAMOUNT);
+		write_2byte(0x33,0x33); delay(DELAYAMOUNT);
 	}
 	status=IDLE;
 	delay(100);
@@ -58,7 +59,7 @@ void PixArt::request()
 	status=WAITING;
 	
 	#if defined(PA_TEENSY3_WIRE) && defined(PA_TEENSY3_ASYNC)
-		w.sendRequest(IRslaveAddress,sz,I2C_NOSTOP);
+		w.sendRequest(IRslaveAddress,sz,I2C_STOP);
 	#elif defined(PA_TEENSY3_WIRE)
 		w.requestFrom(IRslaveAddress,sz);
 		status=COMPLETE;
@@ -106,19 +107,11 @@ void PixArt::readbuffer(uint8_t* buf,uint8_t count)
 {
 	if(mode==SIMPLE)
 	{
-		Serial.print("simple\n");
+		//Serial.print("simple\n");
 		for(uint8_t i=0;w.available() && i < count;i++)
 		{ 
 			buf[i] = w.read();
 		}
-
-		Serial.print("b:");
-		for(uint8_t i=0;i<count;i++)
-		{
-			Serial.print(buf[i],HEX);
-			Serial.print(" ");
-		}
-		Serial.print("\n");
 	}
 	else
 	{
@@ -133,6 +126,15 @@ void PixArt::readbuffer(uint8_t* buf,uint8_t count)
 			}
 		}
 	}
+	#ifdef PA_PRINT_BUFFER
+	Serial.print("b:");
+	for(uint8_t i=0;i<count;i++)
+	{
+		Serial.print(buf[i],HEX);
+		Serial.print(" ");
+	}
+	Serial.print("\n");
+	#endif
 }
 static inline uint8_t maskdown(const uint8_t* buf,uint8_t count)
 {
@@ -202,9 +204,9 @@ bool PixArt::getSubExtendedMode(Point& point,const uint8_t* b)
 TrackingPacket PixArt::getExtended()
 {
 	TrackingPacket r;
-	uint8_t b[12];
-	readbuffer(b,12);
-	uint8_t* bp=b;
+	uint8_t b[13];
+	readbuffer(b,13);
+	uint8_t* bp=b+1; //there's clearly an offset-by-one error on extended mode...but something else might be wrong.
 	for(uint8_t s=0;s<4;s++)
 	{
 		if(!getSubExtendedMode(r.points[s],bp))
@@ -238,12 +240,18 @@ TrackingPacket PixArt::getOther()
 		uint8_t* bp=b+1;
 		for(int i=0;i<4;i++)
 		{
-			uint8_t s;
-			r.points[i].x=bp[0];
-			r.points[i].y=bp[1];
-			s=bp[2];
-			r.points[i].x += static_cast<uint16_t>(s & 0x30) <<4;
-			r.points[i].y += static_cast<uint16_t>(s & 0xC0) <<2;
+			uint8_t s=bp[2];
+			uint16_t xp=bp[0];
+			uint16_t yp=bp[1];
+			if((s & xp & yp)!=0xFF)
+			{
+				xp += static_cast<uint16_t>(s & 0x30) <<4;
+				yp += static_cast<uint16_t>(s & 0xC0) <<2;
+				r.points[i].x=xp;
+				r.points[i].y=yp;
+				uint16_t intensp=s & 0x0F;
+				r.points[i].intensity=intensp << 8;	
+			}
 			bp+=3;
 		}
 

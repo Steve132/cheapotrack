@@ -14,11 +14,12 @@ typedef i2c_t3 WireType;
 typedef TwoWire WireType;
 #endif
 
-#include "TrackingPacket.h"
+#include "TrackingProtocol.h"
 
 class PixArt
 {
 public:
+	//only simple mode works 
 	enum Mode {BASIC=1,EXTENDED=3,FULL=5,OTHER=0x33,SIMPLE}; //is OTHER extended plus a 1-byte dontcare prefix?
 	enum Status {IDLE=1,WAITING,COMPLETE};
 private:
@@ -27,7 +28,7 @@ private:
 	static const uint8_t IRslaveAddress = IRsensorAddress >> 1;   // This results in 0x21 as the address to pass to TWI
 	
 	Mode mode;
-	Status status;
+	volatile Status status;
 	uint8_t modesize() const
 	{
 		switch(mode)

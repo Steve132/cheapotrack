@@ -11,7 +11,7 @@ struct Point
 struct TrackingPacket
 {
 	Point points[4];
-	uint8_t camid;
+	uint8_t camera;
 };
 
 #endif

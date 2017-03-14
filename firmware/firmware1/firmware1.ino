@@ -59,23 +59,32 @@ void setup()
 
 }
 
-void loop()
+void doTracking()
 {
-	ledState = !ledState;
-	if (ledState) { digitalWrite(ledPin,HIGH); } else { digitalWrite(ledPin,LOW); }
-
+	uint8_t complete_values[NUM_PA];
 	for(uint8_t i=0;i<NUM_PA;i++)
 	{
 		parray[i]->request();
+		complete_values[i]=0;
 	}
 
-	for(uint8_t num_complete=0;num_complete<NUM_PA;)
+	uint8_t num_complete;
+	while(num_complete<NUM_PA)
 	{
+		num_complete=0;
 		for(uint8_t i=0;i<NUM_PA;i++)
 		{
-			num_complete+=(uint8_t)(parray[i]->check_status() != PixArt::COMPLETE);
+			//TODO: volatile this variable and protect it..more specificaly 
+			complete_values[i]=(uint8_t)(parray[i]->check_status() != PixArt::COMPLETE);
 		}
+		noInterrupts();
+		for(uint8_t i=0;i<NUM_PA;i++)
+		{
+			num_complete+=complete_values[i];
+		}
+		Interrupts();
 	}
+
 	for(uint8_t i=0;i<NUM_PA;i++)
 	{
 		TrackingPacket tp=parray[i]->read();
@@ -93,5 +102,17 @@ void loop()
 		}
 		Serial.print("\n");
 	}
-	delay(10);
+}
+
+elapsedMicros capture_frametimer;
+uint32_t current_framerate_delay_us=8333; //120hz
+
+void loop()
+{
+	if(capture_framerate >= current_framerate_delay_us)
+	{	
+		doTracking();
+		capture_frametimer -= current_framerate_delay_us;
+	}
+	//no more work to do till next boundary...this doesn't exactly save power because it doesn't sleep properly...but it is correct and who cares about saving power for this thing.
 }
