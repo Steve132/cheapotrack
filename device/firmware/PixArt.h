@@ -14,7 +14,7 @@ typedef i2c_t3 WireType;
 typedef TwoWire WireType;
 #endif
 
-#include "TrackingProtocol.h"
+#include "Point.h"
 
 class PixArt
 {
@@ -47,6 +47,11 @@ private:
 	}
 	void write_2byte(uint8_t d1,uint8_t d2);
 public:
+	struct PointGroup
+	{
+		Point points[4];
+	};
+
 	struct Settings
 	{
 	public:
@@ -69,18 +74,18 @@ public:
 
 	void request();
 	Status check_status();
-	TrackingPacket read();
+	PixArt::PointGroup read();
 	
 	WireType& wire() { return w; }
 
 private:
 	void readbuffer(uint8_t* buf,uint8_t count);
-	TrackingPacket getBasic();
+	PixArt::PointGroup getBasic();
 
 	bool getSubExtendedMode(Point& point,const uint8_t* b);
-	TrackingPacket getExtended();
-	TrackingPacket getFull();
-	TrackingPacket getOther();
+	PixArt::PointGroup getExtended();
+	PixArt::PointGroup getFull();
+	PixArt::PointGroup getOther();
 };
 
 #endif

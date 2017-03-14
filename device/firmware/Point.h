@@ -1,5 +1,5 @@
-#ifndef TRACKINGPACKET_H
-#define TRACKINGPACKET_H
+#ifndef POINT_H
+#define POINT_H
 
 struct Point
 {
@@ -7,11 +7,6 @@ struct Point
 	uint16_t intensity;
 	Point():x(0xFFFF),y(0xFFFF),intensity(0xFFFF)
 	{}
-};
-struct TrackingPacket
-{
-	Point points[4];
-	uint8_t camera;
 };
 
 #endif
