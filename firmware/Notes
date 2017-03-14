@@ -1,0 +1,55 @@
+//scanning is either on or off.  
+
+uint8_t blockingRead()
+{
+	int next;
+	for(next=-1;next == -1;next=Serial.read());
+	return next;
+}
+void doIncomingCommand()
+{
+	uint8_t packet_type=blockingRead();
+	//commands:
+	//write persistent block:  2 byte virtual address (look up table), 1 byte blocksize=n <=32,n bytes of data.
+	//read persistent block: 2 byte virtual address, 1 byte blocksize
+	//write register: 2 byte virtual address, 1 byte blocksize n < 32, n bytes of data
+	//read register: 2 byte virtual address, 1 byte blocksize 
+	//modeset 
+	//start scanning
+	//stop scanning
+}
+
+void loop()
+{
+	if(Serial.available())
+	{
+		doIncomingCommand();
+	}
+}
+
+enum ClientCommands
+{
+	CT_NOP=0,
+	CT_RESET=1,
+	CT_STOP_TRACKING=2,
+	CT_START_TRACKING=3,
+	
+	CT_READ=5,
+	CT_WRITE=4,
+};
+
+enum ServerCommands
+{
+	CT_NOP=0,
+	CT_ERROR=1,
+	CT_READ_RESULT=2,
+	CT_CMD_RESPONSE=3
+	CT_DEBUGTEXT=4,
+		
+	CT_TP_1CAMERA4POINTS_2D_8F=0x80+0,
+	CT_TP_NCAMERA1POINTS_2D_8F=0x90+0,
+	CT_TP_2CAMERA4POINTS_2D_24US=0xA0+0,
+	CT_TP_4CAMERA4POINTS_2D_48UB=0xB0+0
+};
+
+//use DTS to check if there's a listening client.
