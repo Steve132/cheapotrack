@@ -3,6 +3,7 @@
 // modified for http://DFRobot.com by Lumi, Jan. 2014
 
 #include "PixArt.h"
+#include "ProtocolServer.h"
 
 static const int ledPin=13;
 bool ledState;
@@ -26,7 +27,7 @@ void psetup(PixArt& pa,const PixArt::Settings& s)
 void setup()
 {	
 	ledState=true;
-	Serial.begin(19200);
+	Serial.begin(ct::CT_PROTOCOL_BAUD);
 	pinMode(ledPin, OUTPUT);      // Set the LED pin as output
 	
 

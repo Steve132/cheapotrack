@@ -1,12 +1,16 @@
 #ifndef PROTOCOL_ENUMS_H
 #define PROTOCOL_ENUMS_H
 
+
+
 namespace ct
 {
+static const int CT_PROTOCOL_BAUD=19200;
+static const int CT_NOP=0;
 
 enum ClientCommands
 {
-	CT_NOP=0,
+	CT_CLIENT_NOP=CT_NOP,
 	CT_RESET=1,
 	CT_STOP_TRACKING=2,
 	CT_START_TRACKING=3,
@@ -15,18 +19,23 @@ enum ClientCommands
 	CT_WRITE=4,
 };
 
-enum ServerCommands
+enum ServerResponses
 {
-	CT_NOP=0,
+	CT_SERVER_NOP=CT_NOP,
 	CT_ERROR=1,
 	CT_READ_RESULT=2,
-	CT_CMD_RESPONSE=3
+	CT_CMD_RESPONSE=3,
 	CT_DEBUGTEXT=4,
 		
 	CT_TP_1CAMERA4POINTS_2D_8F=0x80+0,
 	CT_TP_NCAMERA1POINTS_2D_8F=0x90+0,
 	CT_TP_2CAMERA4POINTS_2D_24US=0xA0+0,
 	CT_TP_4CAMERA4POINTS_2D_48UB=0xB0+0
+};
+
+enum ServerRegisters
+{
+	CT_REGISTER_NOP=CT_NOP
 };
 
 }

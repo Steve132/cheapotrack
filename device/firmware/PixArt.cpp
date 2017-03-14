@@ -91,6 +91,7 @@ PixArt::PointGroup PixArt::read()
 
 	switch(mode)
 	{
+	default:
 	case BASIC:
 		return getBasic();
 	case EXTENDED:
