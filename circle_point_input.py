@@ -1,6 +1,7 @@
 import cv2
 import cv2.cv as cv
 import numpy as np
+import json
 
 img_name = 'calibration/images/calibrationcross.jpg'
 #img_name = 'calibration/images/glasses001.jpg'
@@ -30,6 +31,7 @@ while(len(centers) < 4):
 window_img = cv2.medianBlur(window_img,5)
 cimg = cv2.cvtColor(window_img,cv2.COLOR_GRAY2BGR)
 
+circ_json = []
 for c in range(len(centers)):
 	pt = centers[c]
 	# TODO: check bounds of pt
@@ -43,7 +45,8 @@ for c in range(len(centers)):
 			cv2.circle(cimg[pt[0]-max_radius:pt[0]+max_radius, pt[1]-max_radius:pt[1]+max_radius],(i[0],i[1]),i[2],(0,255,0),2)
 			# draw the center of the circle
 			cv2.circle(cimg[pt[0]-max_radius:pt[0]+max_radius, pt[1]-max_radius:pt[1]+max_radius],(i[0],i[1]),2,(0,0,255),3)
-
+			print "adding to json:", i[0] + pt[0], i[1] + pt[1]
+			circ_json.append({'x':float(i[0] + pt[0]), 'y':float(i[1] + pt[1]), 'radius':float(i[2])})
 			# TODO: rescale from window image coords to original
 			# draw the outer circle
 			#pt_rescaled = [int(pt[0] / float(cimg.shape[0]) * float(img.shape[0])), int(pt[1] / float(cimg.shape[1]) * float(img.shape[1]))]
@@ -54,5 +57,6 @@ for c in range(len(centers)):
 			# draw the center of the circle
 			#cv2.circle(img[pt_rescaled[0]-max_radius_rescaled[0]:pt_rescaled[0]+max_radius_rescaled[0], pt_rescaled[1]-max_radius_rescaled[1]:pt_rescaled[1]+max_radius_rescaled[1]],(i_rescaled[0],i_rescaled[1]),2,(0,0,255),3)
 
+json.dump(circ_json, open("circles.json", 'w'))
 cv2.imwrite(img_name + '_circles.jpg', cimg)
 cv2.destroyAllWindows()
