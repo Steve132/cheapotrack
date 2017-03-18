@@ -14,4 +14,6 @@ struct PointGroup
 	Point points[4];
 };
 
+
+
 #endif

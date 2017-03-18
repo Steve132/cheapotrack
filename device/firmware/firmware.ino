@@ -68,14 +68,12 @@ void doTracking()
 		{
 			if(!((cmask >> i) & 0x1)) continue;
 			//TODO: volatile this variable and protect it..more specificaly 
-			if(parray[i]->check_status() != PixArt::COMPLETE)
+			if(parray[i]->check_status() == PixArt::COMPLETE)
 			{
 				complete_values[i]=1;
-			}
-			else
-			{
 				group_delays[i]=static_cast<uint32_t>(capture_frametimer) & 0xFFFF; //#TODO, not less than 15FPS
 			}
+			
 		}
 		noInterrupts();
 		for(uint8_t i=0;i<NUM_PA;i++)
