@@ -59,30 +59,30 @@ struct TrackingFlags2D
 
 	uint8_t flagbits;
 	
-	TrackingFlags2D(uint8_t treg=0xF1)://default=0'11110001
-		num_cameras( ((treg >> 6) & 0x3)+1),
+	TrackingFlags2D(uint8_t treg=0xF5)://default=0'11110101
+		num_cameras(((treg >> 6) & 0x3)+1),
 		num_points(((treg >> 4) & 0x3)+1),
-		dtype((treg >> 2) & 0x3),
-		intensity_type((treg >> 2) & 0x3),
-		reg(treg)
+		dtype(static_cast<TrackingFlagsDataType>((treg >> 2) & 0x3)),
+		intensity_type(static_cast<TrackingFlagsDataType>((treg >> 2) & 0x3)),
+		flagbits(treg)
 	{}	
 	
 	uint8_t bytes_per_point() const
 	{
-		uint8_t bpp=(2*(1UB << ((uint8_t)(dtype)-1)));
+		uint8_t bpp=(2*(1 << ((uint8_t)(dtype)-1)));
 		if(dtype == CT_BYTE)
 		{
 			bpp+=1;
 		}
 		else if(intensity_type != CT_NONE)
 		{
-			bpp+=(1UB << ((uint8_t)(intensity_type)-1));
+			bpp+=(1 << ((uint8_t)(intensity_type)-1));
 		}
 		return bpp;
 	}
 	uint8_t buildflags() const
 	{
-		return ((num_cameras-1) << 6) | ((num_points-1) << 4) | (dtype << 2) | (intensity_type);
+		return ((num_cameras-1) << 6) | ((num_points-1) << 4) | ((uint8_t)dtype << 2) | ((uint8_t)intensity_type);
 	}
 	uint8_t bufsize() const
 	{
@@ -105,7 +105,7 @@ enum ServerRegister
 	R_CAMERA1_INTRINSIC_4F=P_PERSISTENT_BIT+0x20,
 	R_CAMERA2_INTRINSIC_4F=P_PERSISTENT_BIT+0x30,
 	R_CAMERA3_INTRINSIC_4F=P_PERSISTENT_BIT+0x40,
-};
+}; 
 
 }
 

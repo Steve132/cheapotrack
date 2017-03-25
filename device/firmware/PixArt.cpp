@@ -2,7 +2,7 @@
 #include "Arduino.h"
 
 #define PA_TEENSY3_ASYNC
-#define PA_PRINT_BUFFER
+//#define PA_PRINT_BUFFER
 
 void PixArt::write_2byte(uint8_t d1,uint8_t d2)
 {

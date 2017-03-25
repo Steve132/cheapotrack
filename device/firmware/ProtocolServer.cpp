@@ -1,5 +1,5 @@
-#include "ProtocolServer.h"
 #include "Arduino.h"
+#include "ProtocolServer.h"
 using namespace ct;
 
 static uint8_t blockingRead1()
@@ -22,9 +22,9 @@ static uint32_t blockingRead4()
 	b4 = (b4 << 16) + blockingRead2();
 	return b4;
 }
-static void blockingRead4f(float v)		
+static float blockingRead4f(float v)		
 {
-	union { uint32_t iv; float fv };
+	union { uint32_t iv; float fv; };
 	iv=blockingRead4();
 	return fv;
 }
@@ -45,7 +45,7 @@ static void blockingWrite4(uint32_t val)
 }
 static void blockingWrite4f(float v)		
 {
-	union { uint32_t iv; float fv };
+	union { uint32_t iv; float fv; };
 	fv=v;
 	blockingWrite4(iv);
 }
@@ -201,7 +201,7 @@ void write2DPacketAdvanced(const TrackingPacket2D& tptype,uint8_t activemask,uin
 	}
 }*/
 
-static inline void writeIntensity(const TrackingPacketDataType& idt,const Point& p)
+static inline void writeIntensity(const TrackingFlagsDataType& idt,const Point& p)
 {
 	switch(idt)
 	{
@@ -227,13 +227,13 @@ static inline void writeIntensity(const TrackingPacketDataType& idt,const Point&
 	};
 }
 
-static inline void writePoint(const TrackingPacketDataType& pdt,const TrackingPacketDataType& idt,const Point& p)
+static inline void writePoint(const TrackingFlagsDataType& pdt,const TrackingFlagsDataType& idt,const Point& p)
 {
 	switch(pdt)
 	{
 		case CT_BYTE:
 		{
-			uint8_t s=(p.x >> 8) | (p.y >> 8) | ((p.intensity >> 4) & 0xF);
+			uint8_t s=(p.x >> 4) | (p.y >> 2) | ((p.intensity >> 4) & 0xF);
 			Serial.write(p.x & 0xFF);
 			Serial.write(p.y & 0xFF);
 			Serial.write(s);
@@ -259,17 +259,24 @@ static inline void writePoint(const TrackingPacketDataType& pdt,const TrackingPa
 	writeIntensity(idt,p);
 }
 
-static inline void write2DPacketSimple(const TrackingPacket2D& tptype,uint8_t activemask,uint32_t frameid,const uint16_t* delay,const PointGroup* pgroups)
+static inline void write2DPacketSimple(ProtocolServer& self,const TrackingFlags2D& tptype,uint8_t activemask,uint32_t frameid,const uint16_t* delay,const PointGroup* pgroups)
 {
-	if(tptype.num_points != 4 || tptype.num_cameras !=4 || tptype.dtype !=CT_BYTE)
+	if(tptype.num_points != 4 || tptype.num_cameras !=4 || tptype.dtype != CT_BYTE)
 	{
-		beginSerialError();
-		Serial.print("Selected Packet Type MUST be (4,4,byte,1) (0xF1).");
-		endSerialError();
-		
+		self.beginSerialError();
+		Serial.print("Selected Packet Type MUST be (4,4,byte,1) (0xF5).\n");
+		Serial.print("tptype.flagbits:");Serial.print(tptype.flagbits,HEX);
+		Serial.print("tptype.num_points:");Serial.print(tptype.num_points,DEC);
+		Serial.print("tptype.num_cameras:");Serial.print(tptype.num_cameras,DEC);
+		Serial.print("tptype.dtype:");Serial.print((int)tptype.dtype,DEC);
+		self.endSerialError();
+		return;
 	}
+
+
+
 	Serial.write(CT_2D_PACKET_TYPE);
-	Serial.write(tptype.reg);
+	Serial.write(tptype.flagbits);
 	blockingWrite4(frameid);
 
 	for(uint_fast8_t ci=0;ci<4;ci++)
@@ -280,7 +287,7 @@ static inline void write2DPacketSimple(const TrackingPacket2D& tptype,uint8_t ac
 	{
 		for(uint_fast8_t pi=0;pi<4;pi++)
 		{
-			writePoint(pgroups[ci].points[pi]);
+			writePoint(tptype.dtype,tptype.intensity_type,pgroups[ci].points[pi]);
 		}
 	}
 	Serial.send_now();	
@@ -289,9 +296,15 @@ static inline void write2DPacketSimple(const TrackingPacket2D& tptype,uint8_t ac
 
 void ct::ProtocolServer::onFrameCapture(const PointGroup* pointgroups,const uint16_t* delay,uint8_t num_cams)
 {
+	TrackingFlags2D tf;
+	tf.num_cameras=4;
+	tf.num_points=4;
+	tf.dtype=CT_BYTE;
+	tf.intensity_type=CT_BYTE;
+	tf.flagbits=tf.buildflags();
 	if(tracking_active)
 	{
-		write2DPacketSimple(0xF1,cam_mask & 0xF,current_frame,delay,pointgroups);
+		write2DPacketSimple(*this,tf.flagbits,cam_mask & 0xF,current_frame,delay,pointgroups);
 	}
 	current_frame++;
 }

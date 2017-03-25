@@ -92,14 +92,21 @@ void doTracking()
 		pgarray[i]=parray[i]->read();
 	}
 	server_host.onFrameCapture(pgarray,group_delays,NUM_PA);
+	
 }
 bool last_tracking=false;
 void loop()
 {
 	if(!Serial.dtr())
 	{
+		server_host.tracking_active=false;
 		return;
 	}
+	else
+	{
+		server_host.tracking_active=true;
+	}
+	
 	if(Serial.available() > 0)
 	{
 		server_host.onCommandReady();
@@ -110,6 +117,7 @@ void loop()
 		digitalWrite(ledPin, last_tracking ? HIGH : LOW);
 	}
 	last_tracking=server_host.tracking_active;
+
 	if(!server_host.tracking_active)
 	{
 		return;
